@@ -1,21 +1,19 @@
 ---
 title: "2021101113_Reliability_Class_Activity"
 author: "Gowlapalli Rohit"
-date: "13/2/2024"
+date: "20/2/2024"
 output:
   pdf_document:
-    toc: true
-  word_document:
     toc: true
   html_document: 
     toc:  
     toc_float: true 
+  word_document:
+    toc: true
 ---
- 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 ```
-
 # Advert Rating: Outlier Detection
 
 ```{r}
@@ -23,6 +21,7 @@ library(readxl)
 data <- readxl::read_excel("BRSM_Assignment_Datasets.xlsx", sheet = 1)
 print(data)
 ```
+
 ```{r}
 library(reshape2)
 library(ggplot2)
@@ -41,7 +40,7 @@ ratings <- data[, 1:26]
 correlation_matrix <- cor(ratings)
 heatmap(correlation_matrix, 
         symm = TRUE, 
-        margins = c(12, 12),
+        margins = c(2, 2),
         main = "Correlation Heatmap of Ratings")
 ```
 
@@ -104,146 +103,23 @@ if (alpha_jp >= 0.7) {
 
 ```
 ## Conclusions from the Cronbach alpha for Job Performance and Job Satisfaction.
-1. We know that the Cronbach alpha ≥ 0.7 is treated as acceptable for internal consistency.
-2. In the case of Job Satisfaction, Cronbach alpha = 0.858. Hence, the measure of Job satisfaction is acceptable.
-3. But in the case of Job Performance, Cronbach alpha = 0.524. Hence, the measure of Job Performance is not acceptable.
+1. We know that the Cronbach alpha greater than 0.7 is treated as acceptable for internal consistency.
+2. In the case of Job Satisfaction, Cronbach alpha = 0.858. Hence, the measure of Job satisfaction is acceptable
+3. But in the case of Job Performance, Cronbach alpha = 0.524. Hence, the measure of Job Performance is not acceptable
 
-# Yulu: Normality Testing
-```{r}
-library(readxl)
-df <- readxl::read_excel("BRSM_Assignment_Datasets.xlsx", sheet = 3)
+Based on the calculated Cronbach’s alpha values for Job Satisfaction (JS) and Job Performance (JP):
 
-datetime_column <- df$datetime
-season_column <- df$season
-holiday_column <- df$holiday
-workingday_column <- df$workingday
-weather_column <- df$weather
-temp_column <- df$temp
-atemp_column <- df$atemp
-humidity_column <- df$humidity
-windspeed_column <- df$windspeed
-casual_column <- df$casual
-registered_column <- df$registered
-count_column <- df$count
+- **Job Satisfaction (JS)** with a Cronbach’s Alpha of 0.8584497: This value exceeds the commonly accepted threshold of 0.7 for acceptable internal consistency, indicating excellent coherence among the items measuring job satisfaction. An alpha of approximately 0.858 suggests strong alignment and effective measurement of the same underlying construct within the Job Satisfaction scale. This high level of consistency implies reliability in assessing job satisfaction.
 
-summary(df)
+- **Job Performance (JP)** with a Cronbach’s Alpha of 0.5242351: This value falls below the commonly accepted threshold of 0.7 for acceptable internal consistency. An alpha of approximately 0.524 indicates inadequate coherence among the items measuring job performance. This suggests that the items within the Job Performance scale may not all effectively measure the same underlying construct, or there may be a lack of cohesion among them. It might be necessary to review and potentially revise the items in this scale to enhance its reliability. Potential adjustments could involve refining existing items or introducing new ones that better align with the overall construct of job performance.
 
-hist(df$temp, main="Temperature Histogram", xlab="Temperature")
-```
-## Is there any effect of Working Day on the number of electric cycles rented ?
-```{r}
-# STEP-1 : Set up Null Hypothesis
-# Null Hypothesis ( H0 ) - Working Day does not have any effect on the number of electric cycles rented.
-# Alternate Hypothesis ( HA ) - Working Day has some effect on the number of electric cycles rented
+#### Commentary on Internal Consistency and Acceptability:
 
-# STEP-2 : Checking for basic assumptions for the hypothesis
-# Distribution check using QQ Plot
-# Homogeneity of Variances using Levene's test
+- The Job Satisfaction measure showcases exceptional reliability and internal consistency, establishing it as a robust tool for evaluating job satisfaction. The elevated Cronbach’s alpha value signifies that the scale comprises items that effectively measure the construct of job satisfaction in unison, instilling confidence in its application for research or practical purposes.
 
-# STEP-3: Define Test statistics; Distribution of T under H0.
-# If the assumptions of T Test are met then we can proceed performing T Test for independent samples else we will perform the non-parametric test equivalent to T Test for independent sample i.e., Mann-Whitney U rank test for two independent samples.
+- Conversely, the Job Performance measure demonstrates a level of reliability that falls below the acceptable standard, signaling a need for improvement. The diminished Cronbach’s alpha value implies that the scale could benefit from a comprehensive review of its items to ensure they collectively capture the intended construct of job performance. Enhancing the internal consistency of this scale is paramount for acquiring dependable and valid assessments of job performance.
 
-# STEP-4: Compute the p-value and fix value of alpha.
-# We set our alpha to be 0.05
+#### Conclusion:
 
-# STEP-5: Compare p-value and alpha.
-# Based on p-value, we will accept or reject H0.
-# p-val > alpha : Accept H0
-# p-val < alpha : Reject H0
-
-# Visual Tests to know if the samples follow a normal distribution
-
-library(ggplot2)
-library(car)
-
-# Visualizing descriptive statistics
-workingday_descriptive <- df[df$workingday == 1, "count"]
-non_workingday_descriptive <- df[df$workingday == 0, "count"]
-
-ggplot(df, aes(x = factor(workingday), y = count)) +
-  geom_boxplot() +
-  labs(x = "Working Day", y = "Count") +
-  ggtitle("Boxplot of Count based on Working Day")
-```
-
-```{r}
-library(ggplot2)
-library(car)
-library(gridExtra)
-workingday_descriptive <- df$count[df$workingday == 1]
-non_workingday_descriptive <- df$count[df$workingday == 0]
-
-hist_workingday <- ggplot(data = NULL, aes(x = workingday_descriptive)) +
-  geom_histogram(fill = "green", color = "black", bins = 30, alpha = 0.5) +
-  labs(title = "Histogram for Workingday", x = "Count", y = "Frequency") +
-  theme_minimal()
-
-hist_non_workingday <- ggplot(data = NULL, aes(x = non_workingday_descriptive)) +
-  geom_histogram(fill = "blue", color = "black", bins = 30, alpha = 0.5) +
-  labs(title = "Histogram for Non-workingday", x = "Count", y = "Frequency") +
-  theme_minimal()
-
-grid.arrange(hist_workingday, hist_non_workingday, ncol = 2)
-```
-
-```{r}
-workingday_descriptive <- workingday_descriptive[!is.na(workingday_descriptive)]
-qqPlot(workingday_descriptive, main = "QQ plot for workingday")
-non_workingday_descriptive <- non_workingday_descriptive[!is.na(non_workingday_descriptive)]
-qqPlot(non_workingday_descriptive, main = "QQ plot for non_workingday")
-```
-
-
-```{r}
-workingday_descriptive_shapiro <- workingday_descriptive[1:5000]  
-non_workingday_descriptive_shapiro <- non_workingday_descriptive[1:5000]
-shapiro.test(workingday_descriptive_shapiro)
-shapiro.test(non_workingday_descriptive_shapiro)
-```
-```{r}
-library(MASS)
-subset_workingday <- subset(df, workingday == 1)
-transformed_workingday <- boxcox(count ~ 1, data = subset_workingday)$x
-shapiro_test <- shapiro.test(transformed_workingday)
-p_value <- shapiro_test$p.value
-cat("p-value:", p_value, "\n")
-if (p_value < 0.05) {
-  cat("The sample does not follow normal distribution\n")
-} else {
-  cat("The sample follows normal distribution\n")
-}
-```
-
-
-```{r}
-library(MASS)
-subset_non_workingday <- subset(df, workingday == 0)
-transformed_non_workingday <- boxcox(count ~ 1, data = subset_non_workingday)$x
-shapiro_test <- shapiro.test(transformed_non_workingday)
-p_value <- shapiro_test$p.value
-cat("p-value:", p_value, "\n")
-if (p_value < 0.05) {
-  cat("The sample does not follow normal distribution\n")
-} else {
-  cat("The sample follows normal distribution\n")
-}
-```
-
-
-```{r}
-# Null Hypothesis(H0) - Homogeneous Variance
-# Alternate Hypothesis(HA) - Non-Homogeneous Variance
-leveneTest(count ~ workingday, data = df)
-
-# Ho : Mean no.of electric cycles rented is same for working and non-working days
-# Ha : Mean no.of electric cycles rented is not the same for working and non-working days
-# Assuming a significance Level to be 0.05
-# Test statistics : Mann-Whitney U rank test for two independent samples
-
-wilcox.test(count ~ workingday, data = df)
-```
-
-
-
-
+The analysis underscores a contrast in the reliability between the two scales. While the Job Satisfaction scale demonstrates exceptional reliability, establishing itself as a highly consistent and effective tool for gauging job satisfaction, the Job Performance scale necessitates substantial enhancements to attain an acceptable level of reliability. Initiatives aimed at refining the Job Performance scale should concentrate on elevating the Cronbach’s alpha value, ensuring that all items are pertinent and contribute positively to the assessment of job performance.
 

@@ -1,0 +1,4 @@
+\contentsline {section}{Advert Rating: Outlier Detection}{1}{section*.2}%
+\contentsline {subsection}{Conclusion from the Correlation Heatmap}{3}{section*.3}%
+\contentsline {section}{Reliable Job: Internal Consistency}{3}{section*.4}%
+\contentsline {subsection}{Conclusions from the Cronbach alpha for Job Performance and Job Satisfaction.}{5}{section*.5}%

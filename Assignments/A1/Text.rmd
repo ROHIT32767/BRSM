@@ -1,0 +1,108 @@
+---
+title: "2021101113_Reliability_Class_Activity"
+author: "Gowlapalli Rohit"
+date: "13/2/2024"
+output:
+  pdf_document:
+    toc: true
+  html_document: 
+    toc:  
+    toc_float: true 
+  word_document:
+    toc: true
+---
+ 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+# Advert Rating: Outlier Detection
+
+```{r}
+library(readxl)
+data <- readxl::read_excel("BRSM_Assignment_Datasets.xlsx", sheet = 1)
+print(data)
+```
+```{r}
+library(reshape2)
+library(ggplot2)
+correlation_matrix <- round(cor(data), 2)
+melted_correlation <- melt(correlation_matrix)
+ggplot(data = melted_correlation, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  geom_text(aes(label = value), size = 2) +
+  scale_fill_gradient2(low = "green", high = "black",
+                       limit = c(-1, 1), name = "Pearson Correlation") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+ratings <- data[, 1:26]
+correlation_matrix <- cor(ratings)
+heatmap(correlation_matrix, 
+        symm = TRUE, 
+        margins = c(12, 12),
+        main = "Correlation Heatmap of Ratings")
+```
+```{r}
+outlier <- which.min(apply(correlation_matrix, 1, function(x) sum(x)))
+outlier_label <- LETTERS[outlier]
+cat("Outlier participant:", outlier_label, "\n")
+```
+
+## Conclusion from the Correlation Heatmap
+
+1. It's evident from the correlation heatmap that participants labeled A through Z, except for O, exhibit positive correlations between them as anticipated, indicating similar rating patterns.
+   
+2. However, for participant O, it's apparent that the correlations are consistently low, approaching zero in many instances. This suggests that participant O is an outlier, likely providing random ratings.
+
+# Reliable Job: Internal Consistency
+
+```{r}
+library(psych)
+data <- readxl::read_excel("BRSM_Assignment_Datasets.xlsx", sheet = 2)
+js_items <- data[, c("JS1", "JS2", "JS3", "JS4")]
+print(js_items)
+jp_items <- data[, c("JP1", "JP2", "JP3", "JP4")]
+print(jp_items)
+```
+
+```{r}
+calculate_alpha <- function(items) {
+  cor_matrix <- cor(items, method = "spearman")
+  mean_corr <- mean(cor_matrix[lower.tri(cor_matrix)])
+  num_items <- ncol(items)
+  alpha <- (num_items * mean_corr) / (1 + (num_items - 1) * mean_corr)
+  return(alpha)
+}
+```
+
+```{r}
+alpha_js <- calculate_alpha(js_items)
+cat("Cronbach's Alpha for Job Satisfaction (JS):", alpha_js, "\n")
+cat("For Job Satisfaction (JS):\n")
+cat("Cronbach's Alpha:", alpha_js, "\n")
+if (alpha_js >= 0.7) {
+  cat("The internal consistency of the JS items is considered acceptable as Cronbach's Alpha is above 0.7.\n")
+} else {
+  cat("The internal consistency of the JS items is considered poor as Cronbach's Alpha is below 0.7.\n")
+
+}
+```
+
+```{r}
+alpha_jp <- calculate_alpha(jp_items)
+cat("Cronbach's Alpha for Job Performance (JP):", alpha_jp, "\n")
+cat("\nFor Job Performance (JP):\n")
+cat("Cronbach's Alpha:", alpha_jp, "\n")
+if (alpha_jp >= 0.7) {
+  cat("The internal consistency of the JP items is considered acceptable as Cronbach's Alpha is above 0.7.\n")
+} else {
+  cat("The internal consistency of the JP items is considered poor as Cronbach's Alpha is below 0.7.\n")
+}
+
+```
+## Conclusions from the Cronbach alpha for Job Performance and Job Satisfaction.
+1. We know that the Cronbach alpha greater than 0.7 is treated as acceptable for internal consistency.
+2. In the case of Job Satisfaction, Cronbach alpha = 0.858. Hence, the measure of Job satisfaction is acceptable
+3. But in the case of Job Performance, Cronbach alpha = 0.524. Hence, the measure of Job Performance is not acceptable
