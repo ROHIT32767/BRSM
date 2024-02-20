@@ -1,0 +1,151 @@
+---
+title: "ques1"
+author: "Akash  C R"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+#Question 1
+
+```{r}
+library('xlsx')
+qn1 = read.csv("housing.csv")
+glimpse(qn1)
+
+```
+### We can see that ocean_proximity is having string variables. Lets convert it to numericals before we perform the correlation analysis.    
+
+```{r}
+unique(qn1$ocean_proximity)
+```
+### Among these 5 unique values, Near Bay, Near Ocean mean the same thing. So, we can map it to the same number.     
+
+```{r}
+qn1$ocean_proximity[qn1$ocean_proximity == 'NEAR BAY'] = 1
+qn1$ocean_proximity[qn1$ocean_proximity == 'NEAR OCEAN'] = 1
+qn1$ocean_proximity[qn1$ocean_proximity == '<1H OCEAN'] = 2
+qn1$ocean_proximity[qn1$ocean_proximity == 'INLAND'] = 3
+qn1$ocean_proximity[qn1$ocean_proximity == 'ISLAND'] = 4
+
+qn1$ocean_proximity = as.numeric(qn1$ocean_proximity)
+glimpse(qn1)
+
+```
+```{r}
+#while plotting correlation map we got NA values corresponding to total_bedrooms which #essentially means it has some NA values.
+nacount = colSums(is.na(data.frame(qn1$total_bedrooms)))
+print(nacount)
+
+#so replace them with avg value
+meanval = mean(qn1$total_bedrooms, na.rm = TRUE)
+qn1$total_bedrooms = ifelse(is.na(qn1$total_bedrooms), meanval, qn1$total_bedrooms)
+
+```
+
+## Visualise the correlation between variables in the data set. 
+
+```{r}
+
+
+cor1 = round(cor(qn1), 2)
+melted_cor = melt(cor1)
+
+library(ggplot2)
+ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+  geom_text(aes(label = value), size = 2) +
+  scale_fill_gradient2(low = "blue", high = "red",
+                       limit = c(-1,1), name="Correlation") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+## We can clearly see some of the variables are highly correlated, now lets perform a correlation test to confirm the collinearity before building the model.
+
+```{r}
+#true correlation is greater than 0
+cor.test(qn1$total_bedrooms, qn1$total_rooms, alternative = "greater")
+
+cor.test(qn1$households, qn1$population, alternative = "greater")
+
+cor.test(qn1$longitude, qn1$latitude, alternative = "less")
+
+
+```
+## Now from the above correlation tests we can see whenever p-value is less than 0.05, it is significant correlation and hence using one of such two variables is enough while building the model.   
+--------
+
+## Pick 2 linear regression models to predict median house value.
+
+## Regression model 1.
+
+```{r}
+f1 = median_house_value ~ longitude + housing_median_age + total_rooms + households + median_income + ocean_proximity
+
+r1 = lm(f1, data = qn1)
+summary(r1)
+```
+## Regression model 2
+
+```{r}
+f2 = median_house_value ~ latitude + housing_median_age + total_bedrooms + population + median_income + ocean_proximity
+
+r2 = lm(f2, data = qn1)
+summary(r2)
+```
+## Regression 3     
+### We can see that ocean_proximity and median_income are highly correlated with median house value where ocean_proximity is negatively correlated.      
+
+```{r}
+f3 = median_house_value ~ median_income + ocean_proximity
+
+r3 = lm(f3, data = qn1)
+summary(r3)
+
+```
+
+### So we built three linear regression models using only one among highly correlated variable thus removing three dimensions in both of the models. And in third model we used only 2 variables which are having high absolute correlation values. And in all the cases the p-value is less than 0.05 and hence we can say our model fits well to the data.   
+------------
+
+## Check for collinearity using VIF to remove highly correlated variables from the model.   
+
+### VIF is used to check multicollinearity, so if VIF is above 5 then it indicates high multicollinearity.   
+
+```{r}
+library('car')
+
+vif(r1)
+```
+### We know that VIF higher than 5 is bit problematic. So in our case we can remove any one of the total_rooms and households which are highly correlated to each other to reduce the multicollinearity.   
+
+### Update regression1 model1
+
+```{r}
+f1 = median_house_value ~ longitude + housing_median_age + households + median_income + ocean_proximity
+
+r1 = lm(f1, data = qn1)
+summary(r1)
+vif(r1)
+```
+### As we can see from the vif scores, after removing total_rooms feature, multicollinearity of all variables are significantly less than 5.    
+
+### Now lets try the same for Regression Model 2.
+
+```{r}
+vif(r2)
+```
+### And since all the values are less than 5, there is no need to remove the features. 
+
+### Lets try the same for Regression Model 3.   
+
+```{r}
+vif(r3)
+```
+### Regression model 3 also does not have problem of multicollinearity so no need to remove any features.    
+
+-------------------------
+
+## Plot the distribution of residuals against the fitted values to check for heteroscedasticity.   
+

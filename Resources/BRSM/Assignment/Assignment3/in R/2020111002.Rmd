@@ -1,0 +1,27 @@
+---
+title: "2020111002_Assignment3_BRSM"
+author: "Divyansh Tiwari"
+date: "2023-04-26"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Importing libraries
+
+```{r}
+library('xlsx')
+library('car')
+
+housing_data = read.csv("housing.csv")
+
+```
+
+# Converting varibales that have numerical values
+
+```{r}
+unique(housing_data$ocean_proximity)
+```
+

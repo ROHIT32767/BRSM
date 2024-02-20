@@ -1,0 +1,45 @@
+---
+title: "2020111002_Visualisation_Activity"
+output: word_document
+date: "2023-01-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The following is the code for the Question 1
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(tidyr)
+mydataq1 <- read_excel("./Visualisation_Activity.xlsx", 1)
+
+
+print(mydataq1)
+```
+
+The following are the histogram plots
+
+```{r}
+hist(mydataq1$x1)
+```
+
+```{r}
+hist(mydataq1$x2)
+```
+```{r}
+hist(mydataq1$x3)
+```
+```{r}
+hist(mydataq1$x4)
+```
+
+Now, we shall take a look at the box plots.
+
+The following are the box plots.
+
+```{r}
+ggplot(mydataq1, aes(x = label, y = label2, fill = label))+geom_boxplot()
+```

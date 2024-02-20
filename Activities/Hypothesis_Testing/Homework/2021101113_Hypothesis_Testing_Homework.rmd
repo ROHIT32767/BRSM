@@ -1,0 +1,92 @@
+---
+title: "2021101113_Hypothesis_Testing_Homework"
+author: "Gowlapalli Rohit"
+date: "13/2/2024"
+output:
+  pdf_document:
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(nortest)
+library(effsize)
+
+library(readxl)
+data <- readxl::read_excel("data.xlsx")
+print(data)
+```
+
+```{r}
+plot_distribution <- function(column_name) {
+
+  column_mean <- mean(data[[column_name]])
+  column_sd <- sd(data[[column_name]])
+  p <- ggplot(data, aes(x = !!sym(column_name))) +
+    geom_histogram(bins = 30, fill = "skyblue", color = "black", aes(y = ..density..)) +
+    ggtitle(paste("Distribution of", column_name)) +
+    xlab(column_name) +
+    ylab("Density")
+  
+  p <- p + stat_function(fun = dnorm, args = list(mean = column_mean, sd = column_sd), color = "red", size = 1.5)
+  
+  return(p)
+}
+
+for (col in c("GPA", "TESTSCORE")) {
+  print(plot_distribution(col))
+}
+```
+
+```{r}
+test_normality <- function(column_name) {
+  shapiro_test <- shapiro.test(data[[column_name]])
+  return(shapiro_test$p.value)
+}
+
+for (col in c("GPA", "TESTSCORE")) {
+  print(test_normality(col))
+}
+```
+
+```{r}
+choose_test <- function(column_name) {
+  shapiro_test <- shapiro.test(data[[column_name]])
+  
+  if (shapiro_test$p.value > 0.05) {
+    return("t-test")
+  } else {
+    return("wilcox.test")
+  }
+}
+
+# Select the appropriate test
+selected_test <- choose_test("TESTSCORE")
+
+# Perform the test and calculate effect size
+if (selected_test == "t-test") {
+  test_result <- t.test(TESTSCORE ~ (GPA <= 7), data = data)
+  mean_diff <- mean(data$TESTSCORE[data$GPA <= 7]) - mean(data$TESTSCORE[data$GPA > 7])
+  pooled_sd <- sqrt(((length(data$TESTSCORE[data$GPA <= 7]) - 1) * var(data$TESTSCORE[data$GPA <= 7]) +
+                     (length(data$TESTSCORE[data$GPA > 7]) - 1) * var(data$TESTSCORE[data$GPA > 7])) /
+                     (length(data$TESTSCORE) - 2))
+  effect_size <- mean_diff / pooled_sd
+} else {
+  test_result <- wilcox.test(TESTSCORE ~ (GPA <= 7), data = data)
+  effect_size <- cohen.d(data$TESTSCORE[data$GPA <= 7], data$TESTSCORE[data$GPA > 7])
+}
+
+# Report statistics
+print(test_result)
+print(paste("Effect Size (Cohen's d or Wilcoxon's r):", effect_size))
+```

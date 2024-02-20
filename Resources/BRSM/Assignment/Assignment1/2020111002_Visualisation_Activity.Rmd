@@ -1,0 +1,305 @@
+---
+title: "Divyansh Tiwari (CSD - 2020111002)"
+output: word_document
+date: "2023-01-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Statistical Deception
+
+The following is the code for the question - Statistical Deception
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(tidyr)
+library(vioplot)
+
+mydataq1 <- read_excel("./Visualisation_Activity.xlsx", 1)
+
+
+print(mydataq1)
+```
+
+The following are the histogram plots
+
+```{r}
+par(mfrow =c(2,2))
+hist(mydataq1$x1, col=2)
+hist(mydataq1$x2, col=3)
+hist(mydataq1$x3, col=4)
+hist(mydataq1$x4, col=5)
+```
+
+From the histogram plots, we can see for ourselves that the data distribution is varied and it shares information with us that the mean of the data is approximately equal, however the data distribution is quite varied.
+
+Now, we shall take a look at the box plots.
+
+The following are the box plots.
+
+```{r}
+par(mfrow =c(2,2))
+boxplot(mydataq1$x1, col=2, main="Boxplot for x1")
+boxplot(mydataq1$x2, col=3, main="Boxplot for x2")
+boxplot(mydataq1$x3, col=4, main="Boxplot for x3")
+boxplot(mydataq1$x4, col=5, main="Boxplot for x4̥")
+```
+
+Through the box plots, we can see for ourselves that no information about the data can be gained except that the box plots are exactly the same which suggests that the data distribution is same which is misleading.
+
+Now, we shall plot the violin plot which supposedly will be the bets plot for this data.
+
+The following is the violin plot for the data.
+
+```{r}
+
+vioplot(mydataq1, ylab="Value",  col=2:5, main="Violin plots for x1, x2, x3, and x4")
+
+```
+
+From the violin plot given above, we can c̥learly gain a lot of information about the data. We can observe that the plot shows that the data distribution is different for each of the columns of the data and the median for the is the same as well. The difference between the data is in the why that it is being distributed. For x1, the data is distributed in a normal-like fashion, where as the distribution of other columns is different. One more thing to note is that the data distribution pattern is similar in the 1st and 3rd quartiles for the first 3 columns of the data.
+
+Since, the violin plot helps us gain so much information for this data set, it is one of the best visualisations that can be done for this data.
+
+Also, the worst visualisation for this data that is misleading is the boxplot as discussed above.
+
+# Personality and Motion
+
+The following is the code for the question - Personality and Motion
+
+```{r}
+library(fmsb)
+
+mydataq2 <- read_excel("./Visualisation_Activity.xlsx", 2)
+
+print(mydataq2)
+```
+
+Given below is the stacked bar plot to analyze which Joint is important to assess the personality traits.
+
+```{r}
+openness <- matrix(mydataq2$Openness)
+conscientiousness <- matrix(mydataq2$Conscientiousness)
+extraversion <- matrix(mydataq2$Extraversion)
+agreeableness <- matrix(mydataq2$Agreeableness)
+neuroticism <- matrix(mydataq2$Neuroticism)
+
+here <- data.frame(openness, conscientiousness, extraversion, agreeableness, neuroticism)
+
+par(mar = c(10, 4, 2, 2) + 0.2)
+
+barplot(as.matrix(here) , main = "Bar plot", ylab="Value", col=c("Red", "Orange", "Yellow", "Pink", "Green", "Cyan", "Blue", "Darkblue", "Violet", "Purple", "Grey", "Black"),  xpd = TRUE, legend = c("Root", "Hips", "Knee", "Ankle", "Toe", "Torso", "Neck", "Head", "Shoulder", "Elbow", "Wrist", "Finger"), args.legend = list(x = "topright", inset = c(- 0.17, 0)), pch = 15, beside=FALSE, las=2)
+
+
+```
+
+The graph given above shows us the ratio of the importance of the joint while assessing the personality traits. However, the ratios are not visile quite well and hence this graph does not provide appropriate visualisation.
+
+Now, we will be looking at the radar plot for the same.
+
+
+```{r}
+library(ggradar)
+ggradar(mydataq2)
+
+```
+
+The above graph is a radar plot and could very well depict the influence of the Joint Importance values for personality traits. However, this graph is quite clumsy and hence we will try to clean it a bit by dividing the plot on the basis of each personality trait.
+
+The following plot is for personality trait - Openness
+
+```{r}
+
+data1 <- data.frame(rbind(rep(1, 12), rep(0, 12), t(matrix(mydataq2$Openness))))
+colnames(data1) <- c("Root", "Hips", "Knee", "Ankle", "Toe", "Torso", "Neck", "Head", "Shoulder", "Elbow", "Wrist", "Finger")
+
+ggradar(data1)
+
+```
+
+The following plot is for personality trait - Conscientiousness
+
+
+```{r}
+
+data2 <- data.frame(rbind(rep(1, 12), rep(0, 12), t(matrix(mydataq2$Conscientiousness))))
+colnames(data2) <- c("Root", "Hips", "Knee", "Ankle", "Toe", "Torso", "Neck", "Head", "Shoulder", "Elbow", "Wrist", "Finger")
+
+ggradar(data2)
+
+```
+
+The following plot is for personality trait - Extraversion
+
+
+```{r}
+print(mydataq2$Extraversion)
+data3 <- data.frame(rbind(rep(1, 12), rep(0, 12), t(matrix(mydataq2$Extraversion))))
+colnames(data3) <- c("Root", "Hips", "Knee", "Ankle", "Toe", "Torso", "Neck", "Head", "Shoulder", "Elbow", "Wrist", "Finger")
+
+ggradar(data3)
+```
+
+The following plot is for personality trait - Agreeableness
+
+
+```{r}
+data4 <- data.frame(rbind(rep(1, 12), rep(0, 12), t(matrix(mydataq2$Agreeableness))))
+colnames(data4) <- c("Root", "Hips", "Knee", "Ankle", "Toe", "Torso", "Neck", "Head", "Shoulder", "Elbow", "Wrist", "Finger")
+
+ggradar(data4)
+```
+
+The following plot is for personality trait - Neuroticism
+
+
+```{r}
+data5 <- data.frame(rbind(rep(1, 12), rep(0, 12), t(matrix(mydataq2$Neuroticism))))
+colnames(data5) <- c("Root", "Hips", "Knee", "Ankle", "Toe", "Torso", "Neck", "Head", "Shoulder", "Elbow", "Wrist", "Finger")
+
+ggradar(data5)
+```
+
+From the radar plots given above, we can clearly see the ratio of the importance of the joint in predicting the personality traits and hence this is a better visualisation technique for this question
+
+# Data Plotting Adventure
+
+The following is the plot for the subtask 4.1 (Sinking Ship)
+
+```{r}
+
+data = matrix(c(118, 62, 4, 141, 154, 25, 13, 93, 422, 88, 106, 90, 670, 192, 3, 20), ncol = 4, byrow = TRUE)
+
+rownames(data) <- c('1st_class', '2nd_class', '3rd_class', 'crew')
+colnames(data) <- c('males_died', 'males_survived', 'females_died', 'females_survived')
+
+print(data)
+
+windows.options(width=20, height=20, reset=FALSE)
+
+mosaicplot(data, color=1:4, las=1, legend=TRUE, xlab="Classes of People", ylab="Males/Females Died/Survived", main = "Mosaic Plot")
+
+
+```
+
+```{r}
+data = matrix(c(62, 141, 25, 93, 88, 90,192, 20), ncol = 2, byrow = TRUE)
+
+rownames(data) <- c('1st_class', '2nd_class', '3rd_class', 'crew')
+colnames(data) <- c('males_survived', 'females_survived')
+
+print(data)
+
+windows.options(width=20, height=20, reset=FALSE)
+
+mosaicplot(data, color=1:4, las=1, legend=TRUE, xlab="Classes of People", ylab="Males/Females Survived", main = "Mosaic Plot of Survived Only")
+
+```
+
+The following is the subtask 2: Petal Prediction
+
+```{r}
+mydataq3 <- read_excel("./Visualisation_Activity.xlsx", 3)
+print(mydataq3)
+subset1 <- (subset(mydataq3, Species=="Iris-setosa", select="SepalLengthCm"))
+print(subset1)
+colnames(subset1) <- "Iris-setosa"
+
+
+subset2 <- (subset(mydataq3, Species=="Iris-versicolor", select="SepalLengthCm"))
+colnames(subset2) <- "Iris-versicolor"
+subset3 <- (subset(mydataq3, Species=="Iris-virginica", select="SepalLengthCm"))
+colnames(subset3) <- "Iris-virginica"
+boxplot(c(subset1, subset2, subset3), ylab="Sepal Length (in cm)", main="Box plots for the flower types based on sepal length", col=2:4)
+
+
+```
+
+The above plot is highly useful when we intend to understand the relationship between the sepal length and the flower species as it shows the median sepal length for the flower species and the range of the sepal length along with the quartiles depicting the spread of the data.
+
+We can also look at the violin plot for the same as shown below for understanding the relationship between the sepal length in cm and flower species.
+
+```{r}
+
+vioplot(c(subset1, subset2, subset3), ylab="Sepal Length (in cm)", main="Box plots for the flower types based on sepal length", col=2:4)
+
+```
+
+
+The following is the code for the subtask 3: Spotify Wrapped
+
+```{r}
+
+mydataq4 <- read_excel("./Visualisation_Activity.xlsx", 4)
+
+songs_df = mydataq4[, 2:6]
+dates <- as.Date(mydataq4$Date)
+
+plt <- ggplot(mydataq4, aes(dates)) + 
+  geom_line(aes(y = Shape.of.You), col=2) +
+  geom_line(aes(y = Despacito), col=3) +
+  geom_line(aes(y = Something.Just.Like.This), col=4) +
+  geom_line(aes(y = HUMBLE.), col=5) +
+  geom_line(aes(y = Unforgettable), col=6)
+
+plt + ggtitle("Spotify Wrapped") + xlab("Dates: Jan 2017 to Jan 2018") + ylab("Streaming Frequency") + scale_fill_discrete(labels = c("Shape of You", "Despacito", "Something Just Like This", "Humble", "Unforgettable")) + theme(legend.position="bottom")
+plt
+
+```
+
+# NEED FOR SPEED: HEATMAP
+
+The following is the task 5 (Need For Speed: Heatmaps)
+
+Given below are the steps to perform before plotting the heatmaps
+
+```{r}
+library(reshape2) 
+library(dplyr)
+
+mydataq5 <- read_excel("./Visualisation_Activity.xlsx", 5)
+mydataq5_here <- select_if(mydataq5, is.numeric)
+
+mat1 <- melt(cor(mydataq5_here, method="pearson"))
+mat2 <- melt(cor(mydataq5_here, method="spearman"))
+mat3 <- melt(cor(mydataq5_here, method="kendall"))
+
+
+```
+
+Now, the following is the heat map when the correlation matrix is chosen to be Pearson's.
+
+```{r}
+ggplot(data=mat1, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile() +
+  geom_text(aes(label = value), size = 2) +
+  scale_fill_gradient2(low = "blue", high="red", limit = c(-1, 1), name="Pearson Correlation") + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Now, the following is the heat map when the correlation matrix is chosen to be Spearman's.
+
+```{r}
+ggplot(data=mat2, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile() +
+  geom_text(aes(label = value), size = 2) +
+  scale_fill_gradient2(low = "blue", high="red", limit = c(-1, 1), name="Spearman Correlation") + 
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+Now, the following is the heat map when the correlation matrix is chosen to be Kendall's.
+
+```{r}
+ggplot(data=mat3, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile() +
+  geom_text(aes(label = value), size = 2) +
+  scale_fill_gradient2(low = "blue", high="red", limit = c(-1, 1), name="Kendall Correlation") + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+From the heat maps plotted above, we can see for ourselves that the heat map plot using the Spearman correlation has cells with higher correlational value. Therefore, out of the three matrices, we choose the Spearman Matrix.
+
+We can infer from the heat map that the variables such as curb weight and engine size are highly correlated. Similarly, we can study the heat map to find more such highly correlated variables to get a better knowledge about the data set.

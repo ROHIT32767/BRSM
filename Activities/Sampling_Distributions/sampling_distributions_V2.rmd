@@ -1,0 +1,94 @@
+---
+title: "2021101113_Visualisation_Assignment"
+author: "Gowlapalli Rohit"
+date: "23/1/2024"
+output:
+  pdf_document:
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+### Question 1
+```{r}
+# Load necessary libraries
+library(stats)
+library(graphics)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Function to perform the required tasks
+sampling_distribution_analysis <- function(sample_size, num_trials) {
+  
+  # Initialize vectors to store means and standard deviations
+  means <- numeric(num_trials)
+  std_devs <- numeric(num_trials)
+  
+  # Loop through the trials
+  for (i in 1:num_trials) {
+    
+    # Generate a random sample from N(100,15) 
+    sample_data <- rnorm(sample_size, mean = 100, sd = 15)
+    
+    # Calculate mean and standard deviation of the sample
+    means[i] <- mean(sample_data)
+    std_devs[i] <- sd(sample_data)
+  }
+  
+  # Plot the frequency distribution of means
+  hist(means, main = paste("Sampling Distribution (n =", sample_size, ")"),
+       xlab = "Sample Mean", col = "skyblue", border = "black", prob = TRUE)
+  
+  # Add a normal curve to the plot for comparison
+  curve(dnorm(x, mean = 100, sd = 15/sqrt(sample_size)), add = TRUE, col = "red", lwd = 2)
+  
+  # Plot the frequency distribution of standard deviations
+  hist(std_devs, main = paste("Sampling Distribution of SD (n =", sample_size, ")"),
+       xlab = "Sample Standard Deviation", col = "lightgreen", border = "black", prob = TRUE)
+  
+  # Add a normal curve to the plot for comparison
+  curve(sqrt((15^2)/(sample_size-1)) * dchisq(x^2, df = sample_size-1), add = TRUE, col = "blue", lwd = 2)
+}
+
+# Perform the analysis for different sample sizes
+sampling_distribution_analysis(10, 1000)
+sampling_distribution_analysis(50, 1000)
+sampling_distribution_analysis(100, 1000)
+sampling_distribution_analysis(500, 1000)
+sampling_distribution_analysis(1500, 1000)
+```
+In the context of the Central Limit Theorem (CLT), which states that the distribution of the sum (or average) of a large number of independent, identically distributed random variables approaches a normal distribution regardless of the original distribution, here are some observations and inferences from the produced histograms:
+
+As Sample Size Increases, Distribution Approaches Normality:
+
+As the sample size increases, you observe that the distribution of sample means becomes more bell-shaped and approaches a normal distribution.
+This aligns with the central limit theorem, which suggests that the sampling distribution of the sample mean becomes approximately normal, even if the underlying population distribution is not normal.
+Consistency of Sample Mean:
+
+The mean of each sampling distribution should be close to the population mean (100, as specified in the problem).
+This demonstrates the unbiased nature of the sample mean as an estimator of the population mean.
+Reduced Variability with Larger Samples:
+
+With larger sample sizes, the variability (standard deviation) of the sample means decreases.
+This reduction in variability is in line with the central limit theorem, which states that larger sample sizes lead to a more concentrated sampling distribution around the true population mean.
+Comparison with Theoretical Distributions:
+
+The red curve in the histograms represents the theoretical normal distribution for the mean, and the blue curve represents the theoretical chi-square distribution for the standard deviation.
+The close alignment of the histograms with these curves supports the central limit theorem's prediction that, with a sufficiently large sample size, the sampling distribution of the mean and standard deviation becomes normal.
+Accuracy of Estimates:
+
+As the sample size increases, the accuracy of estimating the population parameters (mean and standard deviation) improves.
+This reflects the efficiency of larger sample sizes in providing more reliable estimates of population parameters.
+Understanding the Role of Sample Size:
+
+Smaller sample sizes may exhibit more variability, but as the sample size increases, the distribution becomes more centered around the true population mean.
+In summary, the produced histograms and their alignment with theoretical distributions confirm the central limit theorem's predictions. Larger sample sizes lead to more normal-like sampling distributions of the mean and reduced variability, supporting the idea that larger samples provide more reliable estimates of population parameters.
+

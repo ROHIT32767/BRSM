@@ -1,0 +1,95 @@
+---
+title: "2021101113_Hypothesis_Testing_Homework"
+author: "Gowlapalli Rohit"
+date: "13/2/2024"
+output:
+  pdf_document:
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+
+
+# Load necessary libraries
+library(ggplot2)
+library(nortest)
+
+library(readxl)
+data <- readxl::read_excel("data.xlsx")
+print(data)
+
+# Define function to plot histogram with normal distribution curve
+plot_with_normal_dist <- function(column_data) {
+  hist(column_data, probability = TRUE, main = "Histogram with Normal Distribution Curve")
+  lines(density(column_data), col = "blue")
+}
+
+# Define function to perform normality tests
+perform_normality_tests <- function(column_data) {
+  shapiro.test(column_data)
+}
+
+# Define function to choose appropriate test and calculate effect size
+choose_test_and_effect_size <- function(group1_data, group2_data) {
+  p_value <- shapiro.test(group1_data)$p.value
+  if (p_value > 0.05) {
+    # If data is normally distributed, use t-test
+    t_test_result <- t.test(group1_data, group2_data)
+    mean_diff <- mean(group2_data) - mean(group1_data)
+    pooled_sd <- sqrt(((length(group1_data) - 1) * var(group1_data) + (length(group2_data) - 1) * var(group2_data)) / (length(group1_data) + length(group2_data) - 2))
+    effect_size <- mean_diff / pooled_sd
+    cat("Test used: t-test\n")
+  } else {
+    # If data is not normally distributed, use Wilcoxon test
+    t_test_result <- wilcox.test(group1_data, group2_data)
+    effect_size <- NULL  # Effect size is not calculated for non-parametric tests
+    cat("Test used: Wilcoxon test\n")
+  }
+  return(list(test_result = t_test_result, effect_size = effect_size))
+}
+
+# Define function to compare groups based on GPA
+compare_groups_based_on_gpa <- function(data, gpa_threshold = 7) {
+  group1 <- subset(data, GPA <= gpa_threshold)$TESTSCORE
+  group2 <- subset(data, GPA > gpa_threshold)$TESTSCORE
+  
+  cat("Group 1 (GPA <= 7):\n")
+  cat("Mean:", mean(group1), "\n")
+  cat("Variance:", var(group1), "\n")
+  cat("Observations:", length(group1), "\n")
+  
+  cat("\nGroup 2 (GPA > 7):\n")
+  cat("Mean:", mean(group2), "\n")
+  cat("Variance:", var(group2), "\n")
+  cat("Observations:", length(group2), "\n")
+  
+  comparison_result <- choose_test_and_effect_size(group1, group2)
+  
+  return(comparison_result)
+}
+
+# Plot distribution of GPA
+plot_with_normal_dist(data$GPA)
+
+# Perform normality test on GPA
+perform_normality_tests(data$GPA)
+
+# Compare groups based on GPA
+comparison_result <- compare_groups_based_on_gpa(data)
+
+# Report statistics
+cat("\nT-test/Wilcoxon Test Results:\n")
+print(comparison_result$test_result)
+if (!is.null(comparison_result$effect_size)) {
+  cat("Cohen's d value:", comparison_result$effect_size, "\n")
+}
+```

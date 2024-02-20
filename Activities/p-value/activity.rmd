@@ -1,0 +1,58 @@
+---
+title: "2021101113_Beferroni_Activity"
+author: "Gowlapalli Rohit"
+date: "14/2/2024"
+output:
+  pdf_document:
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+raw_p_values <- c(0.005,0.001,0.01,0.0005,0.0009,0.04,0.056,0.05,0.048,0.013,0.037,0.043,0.002,0.025,0.11,0.07,0.08)
+sorted_p_values <- sort(raw_p_values)
+bonferroni_adjusted <- p.adjust(sorted_p_values, method = "bonferroni", n = length(sorted_p_values))
+hochberg_adjusted <- p.adjust(sorted_p_values, method = "hochberg", n = length(sorted_p_values))
+print("Sorted p-values:")
+print(sorted_p_values)
+print("Bonferroni-adjusted p-values:")
+print(bonferroni_adjusted)
+print("Hochberg-adjusted p-values:")
+print(hochberg_adjusted)
+```
+```{r}
+library(reshape2)
+library(ggplot2)
+
+plot_data <- data.frame(x = c(1:17),
+                        raw = sorted_p_values,
+                        bonferroni = bonferroni_adjusted,
+                        hochberg = hochberg_adjusted,
+                        reference = rep(0.05, 17)) # Replicating 0.05 for comparison line
+
+adjusted_p_values_plot <- ggplot(plot_data, aes(x)) +
+  geom_line(aes(y = raw), color = "blue") +
+  geom_line(aes(y = bonferroni), color = "red") +
+  geom_line(aes(y = hochberg), color = "green") +
+  geom_line(aes(y = reference), color = "black", linetype = "twodash") +
+  labs(title = "Comparison of p-value adjustments",
+       x = "Sorted outcomes",
+       y = "p-values")
+
+print(adjusted_p_values_plot)
+```
+- The yellow line represents unadjusted p-values, while the red line depicts Benjamini-Hochberg corrected p-values, and the green line shows Bonferroni corrected p-values. Additionally, the black dotted line represents the alpha level set at 0.05.
+
+- Interpretation based on the line plot:
+  - The Bonferroni method, known for its conservatism, is reflected in the results of the correction. The multiplication of the number of observations to correct the p-values leads to notably higher values compared to the unadjusted p-values.
+  - On the other hand, the Benjamini-Hochberg method adjusts while considering constraints, resulting in intuitively higher values than unadjusted p-values but lower than Bonferroni corrections. This observation aligns with the trends depicted in the plotted graph.
+
+The analysis drawn from the graph suggests that elevated adjusted p-values for the mentioned tests suggest a limited level of evidence supporting an impact. The Bonferroni adjustment appears stricter as it results in higher adjusted p-values. Conversely, the Benjamini-Hochberg adjustment, correlating with lower adjusted p-values compared to our alpha level, is comparatively less stringent.

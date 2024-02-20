@@ -1,0 +1,189 @@
+---
+title: "2021101113_Results_Visualisation_Assignment"
+author: "Gowlapalli Rohit"
+date: "19/2/2024"
+output:
+  pdf_document: 
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+# Attractiveness of humans post consumption of beer to mosquitoes.
+
+## Part A
+```{r}
+library(readxl)
+data <- read_excel("./BRSM_Results_Visualization.xlsx", sheet = 1)
+
+print(data)
+beer <- subset(data, Group == "Beer")
+print(beer)
+water <- subset(data, Group == "Water")
+print(water$`No. of Mosquitoes`)
+
+beer_mean <- mean(beer$`No. of Mosquitoes`)
+print(beer_mean)
+water_mean <- mean(water$`No. of Mosquitoes`)
+print(water_mean)
+test.stat.1 <- abs(water_mean - beer_mean)
+
+beer_median <- median(beer$`No. of Mosquitoes`)
+water_median <- median(water$`No. of Mosquitoes`)
+test.stat.2 <- abs(beer_median - water_median)
+print(test.stat.2)
+cat("The difference between the group medians is", test.stat.2)
+```
+
+
+```{r}
+set.seed(1979)
+
+n <- length(data$Group)
+P <- 10000
+var <- data$`No. of Mosquitoes`
+
+PermSamples <- matrix(0, nrow = n, ncol = P)
+
+for(i in 1:P) {
+  PermSamples[, i] <- sample(var, size = n, replace = FALSE)
+}
+
+Perm.test.stat1 <- rep(0, P)
+Perm.test.stat2 <- rep(0, P)
+
+for (i in 1:P) {
+  Perm.test.stat1[i] <- mean(PermSamples[data$Group == "Beer", i]) - mean(PermSamples[data$Group == "Water", i])
+  
+  Perm.test.stat2[i] <- median(PermSamples[data$Group == "Beer", i]) - median(PermSamples[data$Group == "Water", i])
+}
+
+print(mean(Perm.test.stat2 >= test.stat.2))
+
+hist(Perm.test.stat2, col = "blue", main = "Distribution of median differences from 10k random permutations")
+abline(v = test.stat.2, lwd = 3, col = "green")
+```
+
+
+```{r}
+p_value = sum(Perm.test.stat2 >= test.stat.2)/P
+print(p_value)
+cat("The p_value obtained is ", p_value)
+```
+
+We note that the p-value is below 0.05, indicating a strong likelihood that the alternative directional hypothesis is true and that the observed statistic is statistically significant.
+
+## Part B
+```{r}
+t_initial <- t.test(beer$`No. of Mosquitoes`, water$`No. of Mosquitoes`, var.equal = TRUE)
+t_initial <- t_initial$statistic
+cat("The initial t-score is ", t_initial, "\n")
+```
+
+```{r}
+P <- 10000
+p2_perm <- rep(0, P)
+for(i in 1:P) {
+  temp_t <- t.test(head(PermSamples[, i], 25), tail(PermSamples[,i], 18), var.equal = TRUE)
+  p2_perm[i] <- temp_t$statistic
+}
+p_value_2 <- sum(p2_perm >= t_initial) / P
+cat("The observed p-value is ", p_value_2, "\n")
+
+if(p_value_2 < 0.05) {
+  cat("The obtained p-value is below 0.05, affirming the validity of the alternative hypothesis and indicating that the observed statistic holds significance.\n")
+} else {
+  cat("The obtained p-value is not below 0.05, suggesting that the observed statistic may not hold significance.\n")
+}
+```
+The observed p-value, being less than 0.05, validates the alternate hypothesis and signifies the significance of the observed statistic.
+```{r}
+hist(p2_perm, col = "green", main = "Distribution of t-scores from 10k random permutations")
+abline(v = t_initial, lwd = 2, col = "red")
+```
+
+## Part C
+
+As we compute the p-value under the assumption of a non-directional hypothesis, it's essential to calculate the p-value using the absolute differences of the medians.
+
+```{r}
+
+p_value_significance = sum(abs(Perm.test.stat2) >= test.stat.2)/P
+cat("The p-value is this case is ", p_value_significance)
+```
+
+The p-value is noted to be below 0.05, suggesting the validity of the non-directional hypothesis and indicating significance in the observed statistic.
+
+The statistical analyses performed consistently indicate that the observed data support the alternative hypothesis over the null hypothesis. The significance of the observed statistic, as indicated by the p-values, reinforces the validity of the conclusions drawn from the analyses. Moreover, the consideration of absolute differences of medians underscores the importance of appropriately framing hypotheses to accurately interpret the results of statistical tests.
+
+# Correlation between IQ and TESTSCORES
+
+Following is the code for the third question.
+
+```{r}
+set.seed(42)
+library(readxl)
+data <- read_excel("./IQ.xlsx", sheet = 1)
+p_value <- cor(data$IQ, data$TESTSCORE)
+print("The initial correlation value is ")
+print(p_value)
+n <- length(data$IQ)
+P <- 10000
+iq <- data$IQ
+test_scores <- data$TESTSCORE
+```
+```{r}
+library(reshape2)
+library(ggplot2)
+
+df <- data.frame(iq = iq, score = test_scores)
+corr <- cor(df)
+
+corr_melted <- melt(corr)
+
+ggplot(data = corr_melted, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  geom_text(aes(label = round(value, 2)), size = 2) +
+  scale_fill_gradient2(low = "yellow", high = "gray", limit = c(-1, 1), name = "Pearson Correlation") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+iq_samples <- matrix(0, nrow = n, ncol = P)
+test_scores_samples <- matrix(0, nrow = n, ncol = P)
+
+
+for(i in 1:P) {
+  iq_samples[, i] <- sample(iq, size = n, replace = FALSE)
+  test_scores_samples[, i] <- sample(test_scores, size = n, replace = FALSE)
+}
+```
+
+```{r}
+p3_perm <- rep(0, P)
+
+
+for(i in 1:P) {
+  p3_perm[i] <- cor(iq_samples[, i], test_scores_samples[, i])
+}
+
+p_value_statistic <- sum(p3_perm >= p_value) / P
+print(p_value_statistic)
+print(paste("The observed p-value is ", p_value_statistic))
+```
+The obtained p-value from running the aforementioned code fluctuates between 0 and 1e-04. Currently, the p-value is 1e-04, yet it appears as 0 in the PDF document for unknown reasons.
+
+Upon examination, we note that the p-value significantly falls below 0.05, based on our observed statistic. Hence, we confidently conclude that we can reject the null hypothesis, indicating a correlation between IQ and Test scores.
+
+```{r}
+
+hist(p3_perm, col="green", main = "Distribution of correlation values from 10k random permutations", xlim = c(-0.7, 0.7))
+abline(v=p_value, lwd=2, col="red")
+```

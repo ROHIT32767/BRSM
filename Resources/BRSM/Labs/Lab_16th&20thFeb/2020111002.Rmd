@@ -1,0 +1,225 @@
+---
+title: "Divyansh Tiwari (2020111002)"
+output:
+  pdf_document: default
+  word_document: default
+date: "2023-02-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+The following is the code for the 1st question.
+
+```{r}
+
+p_values <- c(0.0050, 0.0010, 0.0100, 0.0005, 0.0009, 0.0400, 0.0560, 0.0500, 0.0480, 0.0130, 0.0370, 0.0430, 0.0020, 0.0250, 0.1100, 0.0700, 0.0800)
+
+p_values <- sort(p_values)
+
+p_bonferroni <- p.adjust(p_values, method = "bonferroni", n = length(p_values))
+
+p_hochberg <- p.adjust(p_values, method = "hochberg", n = length(p_values))
+
+
+print(p_values)
+print(p_bonferroni)
+print(p_hochberg)
+
+```
+
+
+```{r}
+library(reshape2)
+library(ggplot2)
+
+data <- data.frame(x = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17), y1 = p_values, y2 = p_bonferroni, y3 = p_hochberg, y4 = c(0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500, 0.0500))
+
+gfg_plot <- ggplot(data, aes(x)) +  
+    geom_line(aes(y = y1), color = "blue") +
+     geom_line(aes(y = y2), color = "red") +
+    geom_line(aes(y = y3), color = "green")+
+    geom_line(aes(y = y4), color = "black", linetype = "twodash")+ labs(title="Question 1", x = "sorted outcomes", y = "p-values")
+
+gfg_plot
+#+geom_line(aes(color=c("Unadjusted", "Bonferroni", "Hochberg")))
+
+
+```
+
+The following is the inference from the graph: 
+
+High adjusted p values for the earlier experiments show that there is not enough data to conclusively demonstrate an effect. The more severe Bonferroni correction produces bigger adjusted p values. It is less rigorous since the Hochberg adjustment correlates to lower adjusted p values for the experiment than our alpha. The bonferroni test is a conservative test since it has a high probability of rejecting the null hypothesis.
+
+# Question 2
+
+The following is the code for the second question.
+
+## Part A
+
+```{r}
+library(readxl)
+mydataq2 <- read_excel("./BRSM_Results_Visualization.xlsx", 1)
+
+print(mydataq2)
+beer <- mydataq2[mydataq2$Group == "Beer", ]
+print(beer)
+water <- mydataq2[mydataq2$Group == "Water", ]
+print(water$`No. of Mosquitoes`)
+
+beer_mean <- mean(beer$`No. of Mosquitoes`)
+print(beer_mean)
+water_mean <- mean(water$`No. of Mosquitoes`)
+print(water_mean)
+test.stat.1 <- abs(water_mean - beer_mean)
+
+beer_median <- median(beer$`No. of Mosquitoes`)
+water_median <- median(water$`No. of Mosquitoes`)
+test.stat.2 <- abs(beer_median - water_median)
+print(test.stat.2)
+cat("The difference between the group medians is", test.stat.2)
+
+```
+
+
+```{r}
+set.seed(1979)
+
+n <- length(mydataq2$Group)
+P <- 10000
+var <- mydataq2$`No. of Mosquitoes`
+
+PermSamples <- matrix(0, nrow = n, ncol = P)
+
+for(i in 1:P)
+{
+  PermSamples[, i] <- sample(var, size = n, replace = FALSE)
+}
+
+
+Perm.test.stat1 <- rep(0, P)
+Perm.test.stat2 <- rep(0, P)
+
+for (i in 1:P)
+{
+    Perm.test.stat1[i] <- mean(PermSamples[mydataq2$Group == "Beer", i]) - mean(PermSamples[mydataq2$Group == "Water", i])
+  
+    Perm.test.stat2[i] <- median(PermSamples[mydataq2$Group == "Beer", i]) - median(PermSamples[mydataq2$Group == "Water", i])
+  
+}
+
+print(mean(Perm.test.stat2 >= test.stat.2))
+
+hist(Perm.test.stat2, col = "green", main="Distribution of median differences from 10k random permutations")
+abline(v=test.stat.2, lwd=3, col="red")
+
+
+```
+
+
+```{r}
+
+p_value = sum(Perm.test.stat2 >= test.stat.2)/P
+print(p_value)
+cat("The p_value obtained is ", p_value)
+
+```
+
+We observe that the p-value is less than 0.05 which brings to us a very high possibility of the alternate directional hypothesis to be true and the observed statistic is significant.
+
+## Part B
+
+```{r}
+
+t <- t.test(beer$`No. of Mosquitoes`, water$`No. of Mosquitoes`, var.equal = TRUE)
+t <- t$statistic[['t']]
+cat("The initial t-score is ", t)
+```
+
+```{r}
+
+p2_perm = rep(0, P)
+
+for(i in 1:P)
+{
+  temp_t <- t.test(head(PermSamples[, i], 25), tail(PermSamples[,i], 18), var.equal = TRUE)
+  p2_perm[i] <- temp_t$statistic[['t']]
+}
+
+p_value_2 = (sum(p2_perm >= t))/P
+cat("The observed p_value is ", p_value_2)
+
+```
+
+The observed p_value is less than 0.05 which confirms that the alternate hypothesis is true and the observed statistic is significant.
+
+```{r}
+
+hist(Perm.test.stat2, col="green", main = "Distribution of t-scores from 10k random permutations")
+abline(v=t, lwd=2, col="red")
+```
+
+
+## Part C
+
+Since, we are calculating the p-value assuming that the hypothesis is non-directional, therefore we need to calculate the p-value with the absolute value of the differences of the medians.
+
+```{r}
+
+p_value_3 = sum(abs(Perm.test.stat2) >= test.stat.2)/P
+cat("The p-value is this case is ", p_value_3)
+
+```
+
+The p-value is observed to be less than 0.05 which implies that the non-directional hypothesis is true and the observed statistic is significant.
+
+# Question 3
+
+Following is the code for the third question.
+
+```{r}
+
+mydataq3 <- read_excel("./IQ.xlsx", 1)
+q3_p <- cor(mydataq3$IQ, mydataq3$TESTSCORE)
+print("The intial correlation value is ")
+print(q3_p)
+
+n <- length(mydataq3$IQ)
+P <- 10000
+iq <- mydataq3$IQ
+test_scores <- mydataq3$TESTSCORE
+
+iq_samples <- matrix(0, nrow = n, ncol = P)
+test_scores_samples <- matrix(0, nrow = n, ncol = P)
+
+for(i in 1:P)
+{
+  iq_samples[, i] <- sample(iq, size = n, replace = FALSE)
+  test_scores_samples[, i] <- sample(test_scores, size = n, replace = FALSE)
+}
+
+p3_perm = rep(0, P)
+
+for(i in 1:P)
+{
+  
+  p3_perm[i] = cor(iq_samples[, i], test_scores_samples[, i])
+}
+ 
+p_value_4 <- sum(p3_perm >= q3_p)/P
+print(p_value_4)
+print(paste("The observed p-value is ", p_value_4))
+
+```
+The p-value that is being obtained as I run the code above oscillates between 0 and 1e-04. At the very moment, the p-value from the code above is 1e-04, but for some reason it is getting rendered as 0 in the pdf.
+
+We observe that the p-value is much less than 0.05 based on our observed statistic. Therefore, we can safely assume that we can reject the null hypothesis, since there exists a correlation between IQ and Test scores.
+
+```{r}
+
+hist(p3_perm, col="green", main = "Distribution of correlation values from 10k random permutations", xlim = c(-0.7, 0.7))
+abline(v=q3_p, lwd=2, col="red")
+```

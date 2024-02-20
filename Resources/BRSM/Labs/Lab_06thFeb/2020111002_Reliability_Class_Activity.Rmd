@@ -1,0 +1,92 @@
+---
+title: "Divyansh Tiwari (2020111002)"
+output: word_document
+date: "2023-02-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ADVERT RATING: OUTLIER DETECTION
+
+The following is the code for the Question 1
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(tidyr)
+library(reshape2)
+mydataq1 <- read_excel("./Reliability_Activity.xlsx", 1)
+
+
+# print(mydataq1)
+
+cormat <- round(x = cor(mydataq1, method="pearson"), digits = 2)
+
+# print(cormat)
+
+melted_cormat <- melt(cormat)
+
+# print(melted_cormat)
+
+ggplot(data=melted_cormat, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile() +
+  geom_text(aes(label = value), size = 2) +
+  scale_fill_gradient2(low = "blue", high="red", limit = c(-1, 1), name="Pearson Correlation") + 
+  theme(axis.text.x = element_text(angle = 0))
+
+```
+
+From the heatmap that I have plotted above I can clearly see that the correlation values are the least (close to 0) for the Participant 'O' which is shown in the lighter shade of red which depicts the least correlation values.
+
+So, the participant who has provided random ratings is the partcipant 'O'.
+
+___
+
+
+# RELIABLE JOB: INTERNAL CONSISTENCY
+
+The following is the code for the second question.
+
+```{r}
+
+library("ltm")
+
+mydataq2 <- read_excel("./Reliability_Activity.xlsx", 2)
+
+# print(head(mydataq2))
+js <- subset(mydataq2, select = c("JS1", "JS2", "JS3", "JS4"))
+cronbach.alpha(js, CI=TRUE, standardized = TRUE)
+
+
+```
+Given above is the cronbach alpha value for the job satisfaction questionnaire. From the alpha value, we can infer that the questionnarie for assessing job satisfaction is internally consistent and is reliable.
+
+
+```{r}
+
+jp <- subset(mydataq2, select = c("JP1", "JP2", "JP3", "JP4"))
+cronbach.alpha(jp, CI=TRUE,  standardized = TRUE)
+
+```
+
+Given above is the cronbach alpha value of the job performance questionnaire. From the alpha value, we can infer that the questionnaire is not acceptable as it has a poor internal reliability among the set of questions.
+
+
+```{r}
+
+except_avgs <- subset(mydataq2, select = c("JS1", "JS2", "JS3", "JS4", "JP1", "JP2", "JP3", "JP4"))
+print(cronbach.alpha(except_avgs, CI=TRUE, standardized = TRUE))
+
+```
+
+Given above is the cronbach alpha value of the entire questionnaire. This is done to check the internal reliability between the two subset of the questionnaires and we find that the questionnaire's reliability is questionable and cannot be relied upon with this set.
+
+Although, this is not a very good thing to calculate the cronbach alpha value for 2 set of questionnaire which are aimed at assessing different thing, I still gave it a try.
+
+___
+
+___
+
+
