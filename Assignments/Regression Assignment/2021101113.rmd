@@ -1,0 +1,395 @@
+---
+title: "2021101113_Regression_Assignment"
+author: "Gowlapalli Rohit"
+date: "4/4/2024"
+output:
+  pdf_document:
+    toc: true
+  html_document: 
+    toc:  
+    toc_float: true 
+  word_document:
+    toc: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+
+#Question 1
+
+```{r}
+library('xlsx')
+qn1 = read.csv("housing.csv")
+```
+### We can see that ocean_proximity is having string variables. Lets convert it to numericals before we perform the correlation analysis.    
+
+```{r}
+unique(qn1$ocean_proximity)
+```
+### Among these 5 unique values, Near Bay, Near Ocean mean the same thing. So, we can map it to the same number.     
+
+```{r}
+qn1$ocean_proximity[qn1$ocean_proximity == 'NEAR BAY'] = 1
+qn1$ocean_proximity[qn1$ocean_proximity == 'NEAR OCEAN'] = 1
+qn1$ocean_proximity[qn1$ocean_proximity == '<1H OCEAN'] = 2
+qn1$ocean_proximity[qn1$ocean_proximity == 'INLAND'] = 3
+qn1$ocean_proximity[qn1$ocean_proximity == 'ISLAND'] = 4
+
+qn1$ocean_proximity = as.numeric(qn1$ocean_proximity)
+
+
+```
+```{r}
+#while plotting correlation map we got NA values corresponding to total_bedrooms which #essentially means it has some NA values.
+nacount = colSums(is.na(data.frame(qn1$total_bedrooms)))
+print(nacount)
+
+#so replace them with avg value
+meanval = mean(qn1$total_bedrooms, na.rm = TRUE)
+qn1$total_bedrooms = ifelse(is.na(qn1$total_bedrooms), meanval, qn1$total_bedrooms)
+
+```
+
+## Visualise the correlation between variables in the data set. 
+```{r}
+install.packages("ggplot2")
+```
+
+```{r}
+cor1 = round(cor(qn1), 2)
+melted_cor = melt(cor1)
+ggplot(data = melted_cor, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+  geom_text(aes(label = value), size = 2) +
+  scale_fill_gradient2(low = "blue", high = "red",
+                       limit = c(-1,1), name="Correlation") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+## We can clearly see some of the variables are highly correlated, now lets perform a correlation test to confirm the collinearity before building the model.
+
+```{r}
+#true correlation is greater than 0
+cor.test(qn1$total_bedrooms, qn1$total_rooms, alternative = "greater")
+
+cor.test(qn1$households, qn1$population, alternative = "greater")
+
+cor.test(qn1$longitude, qn1$latitude, alternative = "less")
+
+
+```
+## Now from the above correlation tests we can see whenever p-value is less than 0.05, it is significant correlation and hence using one of such two variables is enough while building the model.   
+--------
+
+## Pick 2 linear regression models to predict median house value.
+
+## Regression model 1.
+
+```{r}
+f1 = median_house_value ~ longitude + housing_median_age + total_rooms + households + median_income + ocean_proximity
+
+r1 = lm(f1, data = qn1)
+summary(r1)
+```
+## Regression model 2
+
+```{r}
+f2 = median_house_value ~ latitude + housing_median_age + total_bedrooms + population + median_income + ocean_proximity
+
+r2 = lm(f2, data = qn1)
+summary(r2)
+```
+## Regression 3     
+### We can see that ocean_proximity and median_income are highly correlated with median house value where ocean_proximity is negatively correlated.      
+
+```{r}
+f3 = median_house_value ~ median_income + ocean_proximity
+
+r3 = lm(f3, data = qn1)
+summary(r3)
+
+```
+
+### So we built three linear regression models using only one among highly correlated variable thus removing three dimensions in both of the models. And in third model we used only 2 variables which are having high absolute correlation values. And in all the cases the p-value is less than 0.05 and hence we can say our model fits well to the data.   
+------------
+
+## Check for collinearity using VIF to remove highly correlated variables from the model.   
+
+### VIF is used to check multicollinearity, so if VIF is above 5 then it indicates high multicollinearity.   
+
+```{r}
+library('car')
+
+vif(r1)
+```
+### We know that VIF higher than 5 is bit problematic. So in our case we can remove any one of the total_rooms and households which are highly correlated to each other to reduce the multicollinearity.   
+
+### Update regression1 model1
+
+```{r}
+f1 = median_house_value ~ longitude + housing_median_age + households + median_income + ocean_proximity
+
+r1_modified = lm(f1, data = qn1)
+summary(r1_modified)
+vif(r1_modified)
+```
+### As we can see from the vif scores, after removing total_rooms feature, multicollinearity of all variables are significantly less than 5.    
+
+### Now lets try the same for Regression Model 2.
+
+```{r}
+vif(r2)
+```
+### And since all the values are less than 5, there is no need to remove the features. 
+
+### Lets try the same for Regression Model 3.   
+
+```{r}
+vif(r3)
+```
+### Regression model 3 also does not have problem of multicollinearity so no need to remove any features.    
+
+-------------------------
+
+## Plot the distribution of residuals against the fitted values to check for heteroscedasticity.   
+
+### Lets try for the Regression model 1.  
+
+```{r}
+my_resid = resid(r1)
+my_fitted = fitted(r1)
+plot(my_fitted, my_resid, main = "Residuals vs Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+
+```
+
+### Since plot of residuals against fitted values is not constant, it means that there is heteroscedasticity in our data.      
+
+### Now lets try the same for Model2.  
+```{r}
+my_resid = resid(r2)
+my_fitted = fitted(r2)
+plot(my_fitted, my_resid, main = "Residuals vs Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+
+```
+
+### Again we can say that the data has heteroscedasticity.    
+
+### Now lets try for model3.
+```{r}
+my_resid = resid(r3)
+my_fitted = fitted(r3)
+plot(my_fitted, my_resid, main = "Residuals vs Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+
+```
+
+
+### This has the same result again.  
+### So all three models have significant heteroscedasticity.   
+
+---------   
+
+## Use ncvTest or equivalent to test for heteroscedasticity  
+
+```{r}
+ncvTest(r1)
+```
+### We can clearly see that p value is far less that 0.05 which  indicates that null hypothesis of constant variance is rejected and there is a evidence of heteroscedasticity in the residuals. 
+
+### Now lets perform the same on model2. 
+```{r}
+ncvTest(r2)
+```
+
+### Again a very small p-value indicating there is evidence of heteroscedasticity in the residuals, meaning that the variance of the residuals is not constant across the range of fitted values.   
+
+```{r}
+ncvTest(r3)
+```
+### Again the proof of heteroscedasticity. So we can clearly see that both the tests ncvTest as well as plot of residuals vs fitted are consistent and provide evidence for the presence of heteroscedasticity.         
+------   
+
+## Test for normality of the residuals.  
+
+### Lets use qqplot to determine the normality of the residuals.  
+### For model 1
+
+```{r}
+qqnorm(r1$residuals)
+qqline(r1$residuals)
+```
+### As we can cleary see from the graph that points deviate from the straight line significanlty, we can say that the residuals are not normally distributed.   
+
+### For model2
+
+```{r}
+qqnorm(r2$residuals)
+qqline(r2$residuals)
+```
+### Again the residuals are not normally distributed.   
+
+### Now testing for model 3
+
+```{r}
+qqnorm(r3$residuals)
+qqline(r3$residuals)
+```
+
+### Again we can see the deviation and say that the residuals are not normally distributed.   
+### So we can reject the null hypothesis that our data came from normally distributed data.   
+
+------------- 
+
+## Compare two models using AIC and choose the best model.   
+
+```{r}
+AIC(r1)
+AIC(r2)
+AIC(r3)
+
+```
+### As we can see from the above AIC score, model 2 has the lowest AIC. So, we can choose model2 be the better model among the three.   
+
+------- 
+
+## Report the coefficients of the winning model and their statistics (including confidence intervals) and interpret the resulting model coefficients.   
+
+### The model 2 is the best model.  
+
+```{r}
+summary(r2)
+```
+### R-square value of 0.61 says that the model explains 61% of the variation in the response variable.  
+### And also higher t-values whose absolute value is greater than 2 imply that the estimate of regression coefficient is significant. Higher the absolute t-value higher the significance that variables are related.   
+
+### Confidence interval of 95%  
+```{r}
+confint(object = r2, level=0.95)
+```
+--------------------------------
+
+# Question 2
+
+```{r}
+qn2 = read.csv("binary.csv")
+
+```
+## Normalising data using min-max normalisation
+```{r}
+
+qn2$gre = (qn2$gre - min(qn2$gre))/(max(qn2$gre) - min(qn2$gre))
+qn2$gpa = (qn2$gpa - min(qn2$gpa))/(max(qn2$gpa) - min(qn2$gpa))
+qn2$rank = (qn2$rank - min(qn2$rank))/(max(qn2$rank) - min(qn2$rank))
+
+
+```
+
+## Train/test set
+
+```{r}
+n_row = nrow(qn2)
+total_row = 0.75 * n_row
+train_sample <- 1: total_row
+  
+train_set = qn2[train_sample, ]
+test_set = qn2[-train_sample, ]
+
+dim(train_set)
+dim(test_set)
+
+```
+---------
+## building the model.
+
+```{r}
+formula1 <- admit~gre + gpa + rank
+l1 <- glm(formula1, data = train_set, family = 'binomial')
+```
+
+----------
+
+## Reporting the statistics.
+
+### confusion matrix
+```{r}
+predict <- predict(l1, test_set, type = 'response')
+
+# confusion matrix
+matrix <- table(test_set$admit, predict > 0.5)
+print(matrix)
+```
+### Accuracytest    
+## (tp + tn)/total.
+```{r}
+accuracy_Test <- sum(diag(matrix)) / sum(matrix)
+accuracy_Test
+```
+
+## Reporting statistics
+```{r}
+summary(l1)
+```
+### We can see that rank and GPA are most significant variables for prediction.  
+
+
+Explain in terms odds by exponentiating the coefficients?
+TODO
+## Confidence Intervals
+```{r}
+confint(l1,level = 0.95)
+```
+## adding new column
+```{r}
+df2 = qn2
+df2$new = df2$gpa * df2$rank
+
+
+```
+
+### Train/test set
+
+```{r}
+#set.seed(123)
+
+n_row = nrow(df2)
+total_row = 0.75 * n_row
+train_sample <- 1: total_row
+  
+data_train2 = df2[train_sample, ]
+data_test2 = df2[-train_sample, ]
+
+dim(data_train2)
+dim(data_test2)
+```
+
+### build the model
+
+```{r}
+formula2 <- admit~gpa+gre+rank+new
+l2 <- glm(formula2, data = data_train2, family = 'binomial')
+```
+
+### confusion matrix
+```{r}
+predict <- predict(l2, data_test2, type = 'response')
+
+# confusion matrix
+matrix <- table(data_test2$admit, predict > 0.5)
+print(matrix)
+```
+
+### Accuracytest
+```{r}
+accuracy_Test2 <- sum(diag(matrix)) / sum(matrix)
+accuracy_Test2
+```
+
+## Reporting statistics
+```{r}
+summary(logit2)
+```
+### The coefficient corresponding to 'new'(gpa*rank) variable is very high compared to all the other variable coefficients.Thus,This variable has more affect on the prediction. 
+
+## Confidence Intervals
+```{r}
+confint(logit2,level =.99)
+```
