@@ -1,0 +1,72 @@
+---
+title: "Bayesian Statistics"
+author: "Gowlapalli Rohit"
+date: "8/4/2024"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+```{r}
+rm(list = setdiff(ls(), lsf.str()))
+setwd("/Users/gowlapallirohit/Documents/IIITH/SEM-6/BRSM/Activities/Bayesian") 
+load("parenthood.RData")
+ls() #returns a list of all the objects you just loaded (and anything else in your environment)
+write.csv(parenthood,
+  file="parenthood.csv")
+parenthood
+```
+
+```{r}
+# frequentist regression
+model <- lm( formula = dan.grump ~ dan.sleep + day + baby.sleep, data = parenthood)
+summary(model)
+```
+
+
+```{r}
+# model diagnostics
+par(mfrow = c(2, 2))
+plot(model)
+
+# If the model diagnostics look good, then the results above may be valid and we can start to interpret the results in a frequentist framework. Next, we check what the Bayesian method tells us.
+```
+
+
+```{r}
+library(BayesFactor)
+
+parenthood <- as.data.frame(parenthood)
+
+regressionBF(
+  formula = dan.grump ~ dan.sleep + day + baby.sleep, data = parenthood)
+
+```
+```{r}
+# Check and compare BF between models, examine a defined number of models instead of looking at all of the output
+models <- regressionBF(formula = dan.grump ~ dan.sleep + day + baby.sleep, data = parenthood)
+head(models, n = 3)
+```
+
+```{r}
+# Find the best model by comparing models against the one with the largest Bayes Factor
+head(models/max(models), n = 3)
+
+
+# Display all models
+models
+
+# Compare specific models
+models[1] / models[4]
+```
+
+```{r}
+# Use the "top" option to analyze what happens if you drop predictor variables from a certain model
+regressionBF(
+    formula = dan.grump ~ dan.sleep + baby.sleep,
+    data = parenthood,
+    whichModels = "top"
+)
+```
