@@ -3,7 +3,7 @@ title: "Regression Assignment"
 author: "Student Name"
 date: "10/4/2024"
 output:
-  pdf_document:
+  pdf_document: 
     toc: yes
   html_document:
     toc: yes
